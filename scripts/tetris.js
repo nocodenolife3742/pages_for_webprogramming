@@ -42,7 +42,8 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min) + min);
 }
 
-function Block(id) {
+function Block(id, index) {
+    this.index = index;
     this.id = id;
     this.pattern = pattern[id];
     this.offset_i = 0;
@@ -62,6 +63,34 @@ function Block(id) {
             }
         }
         return true;
+    }
+    this.is_collide = function () {
+        let board = Array.from(Array(20), () => new Array(10).fill(0));
+        for (let i = 0; i < active_block.length; i++) {
+            if (i === this.index)
+                continue;
+            for (let j = 0; j < active_block[i].pattern.length; j++) {
+                for (let k = 0; k < active_block[i].pattern[0].length; k++) {
+                    if (active_block[i].pattern[j][k] === 0)
+                        continue;
+                    let actual_i = j + active_block[i].offset_i;
+                    let actual_j = k + active_block[i].offset_j;
+                    board[actual_i][actual_j] = 1;
+                }
+            }
+        }
+        for (let j = 0; j < active_block[this.index].pattern[0].length; j++) {
+            for (let k = 0; k < active_block[this.index].pattern.length; k++) {
+                if (active_block[this.index].pattern[k][j] === 0)
+                    continue;
+                let actual_i = k + active_block[this.index].offset_i;
+                let actual_j = j + active_block[this.index].offset_j;
+                if (board[actual_i][actual_j] === 1) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
     this.touch_down = function () {
         for (let i = 0; i < this.pattern.length; i++) {
@@ -86,18 +115,18 @@ function Block(id) {
             }
         }
         [new_pattern, this.pattern] = [this.pattern, new_pattern];
-        if (!this.is_valid()) {
+        if (!this.is_valid() || this.is_collide()) {
             this.pattern = new_pattern;
         }
     }
     this.move_left = function () {
         this.offset_j--;
-        if (!this.is_valid())
+        if (!this.is_valid() || this.is_collide())
             this.offset_j++;
     }
     this.move_right = function () {
         this.offset_j++;
-        if (!this.is_valid())
+        if (!this.is_valid() || this.is_collide())
             this.offset_j--;
     }
     this.move_down = function () {
@@ -130,7 +159,7 @@ function Block(id) {
 
 function add_new_block() {
     let id = getRandomInt(1, 6);
-    active_block.push(new Block(id));
+    active_block.push(new Block(id, active_block.length));
 }
 
 function clear_board() {
@@ -159,31 +188,49 @@ function clear_board() {
 }
 
 function move_down_active_block() {
-    let remove_index = [];
-    for (let i = 0; i < active_block.length; i++) {
-        if (active_block[i].touch_down()) {
-            remove_index.push(i);
-        }
-    }
-
-    for (let idx = 0; idx < remove_index.length; idx++) {
-        let n = remove_index[idx];
-        for (let i = 0; i < active_block[n].pattern.length; i++) {
-            for (let j = 0; j < active_block[n].pattern[0].length; j++) {
-                if (active_block[n].pattern[i][j] === 0)
-                    continue;
-                board[i + active_block[n].offset_i][j + active_block[n].offset_j] = active_block[n].id;
+    let max_times = active_block.length;
+    for (let times = 0; times < max_times; times++) {
+        let remove_index = [];
+        for (let i = 0; i < active_block.length; i++) {
+            if (active_block[i].touch_down()) {
+                remove_index.push(i);
             }
         }
-        if (is_GameOver()) {
-            pause_game();
-            alert("Game Over\nYour Score : " + score);
-        }
-        clear_board();
-    }
 
-    for (let i = remove_index.length - 1; i >= 0; i--) {
-        active_block.splice(remove_index[i], 1);
+        for (let idx = 0; idx < remove_index.length; idx++) {
+            let n = remove_index[idx];
+            for (let i = 0; i < active_block[n].pattern.length; i++) {
+                for (let j = 0; j < active_block[n].pattern[0].length; j++) {
+                    if (active_block[n].pattern[i][j] === 0)
+                        continue;
+                    board[i + active_block[n].offset_i][j + active_block[n].offset_j] = active_block[n].id;
+                }
+            }
+            if (is_GameOver()) {
+                pause_game();
+                for(let i = 0; i < active_block.length; i++){
+                    for (let j = 0; j < active_block[i].pattern.length; j++) {
+                        for (let k = 0; k < active_block[i].pattern[0].length; k++) {
+                            if (active_block[i].pattern[j][k] === 0)
+                                continue;
+                            board[j + active_block[i].offset_i][k + active_block[i].offset_j] = active_block[i].id;
+                        }
+                    }
+                }
+                active_block = [];
+                alert("Game Over\nYour Score : " + score);
+                return;
+            }
+            clear_board();
+        }
+
+        for (let i = remove_index.length - 1; i >= 0; i--) {
+            active_block.splice(remove_index[i], 1);
+        }
+
+        for (let i = 0; i < active_block.length; i++) {
+            active_block[i].index = i;
+        }
     }
 
     for (let i = 0; i < active_block.length; i++) {
@@ -355,8 +402,9 @@ function reset_game() {
 function pause_game() {
     if (Pause)
         return;
-    Pause = true;
     clear_intervals();
+    Pause = true;
+
 }
 
 requestAnimationFrame(update_canvas);
@@ -369,7 +417,6 @@ document.addEventListener("keydown", (event) => {
             if (active_block[i].is_click)
                 active_block[i].move_left();
         }
-        console.log(active_block);
     }
     if (event.key === "ArrowRight" || event.key === "d") {
         if (Pause)
@@ -462,68 +509,43 @@ canvas.onmousemove = (event) => {
     if (index === -1)
         return;
 
-    let board = Array.from(Array(20), () => new Array(10).fill(0));
-    for (let i = 0; i < active_block.length; i++) {
-        if (i === index)
-            continue;
-        for (let j = 0; j < active_block[i].pattern.length; j++) {
-            for (let k = 0; k < active_block[i].pattern[0].length; k++) {
-                if (active_block[i].pattern[j][k] === 0)
-                    continue;
-                let actual_i = j + active_block[i].offset_i;
-                let actual_j = k + active_block[i].offset_j;
-                board[actual_i][actual_j] = 1;
-            }
-        }
-    }
-
-    function is_collide() {
-        for (let j = 0; j < active_block[index].pattern[0].length; j++) {
-            for (let k = 0; k < active_block[index].pattern.length; k++) {
-                if (active_block[index].pattern[k][j] === 0)
-                    continue;
-                let actual_i = k + active_block[index].offset_i;
-                let actual_j = j + active_block[index].offset_j;
-                if (board[actual_i][actual_j] === 1) {
-                    active_block[index].is_click = false;
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 
     if (now_x > drag_x + 30) {
         active_block[index].move_right();
-        if (is_collide())
+        if (active_block[index].is_collide()) {
             active_block[index].move_left();
+            active_block[index].is_click = false;
+        }
         drag_x += 30;
     } else if (now_x < drag_x - 30) {
         active_block[index].move_left();
-        if (is_collide())
+        if (active_block[index].is_collide()) {
             active_block[index].move_right();
+            active_block[index].is_click = false;
+        }
         drag_x -= 30;
     }
     if (now_y > drag_y + 30) {
         active_block[index].move_down();
-        if (is_collide())
+        if (active_block[index].is_collide()) {
             active_block[index].move_up();
+            active_block[index].is_click = false;
+        }
+
         drag_y += 30;
     }
     if (now_y < drag_y - 30) {
         active_block[index].move_up();
-        if (is_collide())
+        if (active_block[index].is_collide()) {
             active_block[index].move_down();
+            active_block[index].is_click = false;
+        }
         drag_y -= 30;
     }
-
-
 }
 canvas.onmouseleave = (event) => {
     event.preventDefault();
     is_dragging = false;
 }
-
-
 
 reset_game();
