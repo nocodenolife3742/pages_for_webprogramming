@@ -1,72 +1,24 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="zh-Hant-TW">
 <head>
-    <style>
-        table {
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            padding: 10px;
-            text-align: center;
-            border: 1px solid #000;
-        }
-
-        th {
-            background-color: cornflowerblue;
-
-        }
-
-        td {
-            background-color: #f5f5f5;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <title>tetris</title>
+    <link href="styles/style.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <script async src="scripts/tetris.js"></script>
 </head>
-
 <body>
-    <table id="table">
-        <tr>
-            <th class="header_cell">Math</th>
-            <th class="header_cell">English</th>
-            <th class="header_cell">Programming</th>
-        </tr>
-        <tr>
-            <td class="normal_cell">90</td>
-            <td class="normal_cell">60</td>
-            <td class="normal_cell">80</td>
-        </tr>
-        <tr>
-            <td class="normal_cell">80</td>
-            <td class="normal_cell">86</td>
-            <td class="normal_cell">98</td>
-        </tr>
-    </table>
-    <p>Change table width</p>
-    <div>
-        <button onclick="changeWidth(200)">200px</button>
-        <button onclick="changeWidth(500)">500px</button>
-    </div>
-    <p>Change border width</p>
-    <div>
-        <button onclick="changeBorderWidth(1)">1px</button>
-        <button onclick="changeBorderWidth(10)">10px</button>
-        <button onclick="changeBorderWidth(20)">20px</button>
-    </div>
-    <p>Change background</p>
-    <div>
-        <button onclick="changeBackgroundColor('#f5f5f5')">Light Gray</button>
-        <button onclick="changeBackgroundColor('#e0e0e0')">Gray</button>
-        <button onclick="changeBackgroundColor('#d3d3d3')">Dark Gray</button>
-        <button onclick="changeBackgroundColor('#c0c0c0')">Darker Gray</button>
-    </div>
-
-    <div>
-        <button onclick="resetStyle()">Reset Style</button>
-    </div>
-
-    <script src="https://nocodenolife3742.github.io/pages_for_webprogramming/script/lab4.js"></script>
+<canvas height="690" id="tetris" width="1000"></canvas>
+<div id="buttons">
+    <button id="start" title="start game"><i class="fa-solid fa-play"></i></button>
+    <button id="pause" title="pause game"><i class="fa-solid fa-pause"></i></button>
+    <button id="move-left" title="move left"><i class="fa-solid fa-arrow-left"></i></button>
+    <button id="move-right" title="move right"><i class="fa-solid fa-arrow-right"></i></button>
+    <button id="rotate" title="rotate"><i class="fa-solid fa-rotate"></i></button>
+    <button id="reset" title="reset game">RESET <i class="fa-solid fa-rotate-right"></i></button>
+</div>
 </body>
-
 </html>
